@@ -1,11 +1,24 @@
 import shelve
+from tqdm import tqdm
 
-with shelve.open('DirectionalSuite/00000') as db:
-    cCDF = db['cCDF']
-    print(len(cCDF),len(cCDF[0]))
+it = tqdm(range(15000))
+for i in it:
+    it.set_description(f"Processing {i}")
+    try:
+        #print(f"DirectionalSuite/{i:05d}")
+        #print(f"{i}")
+        with shelve.open(f"DirectionalSuite/{i:05d}") as db:
 
-    LOS = cCDF[0]
-    perp = cCDF[1]
-    for q in range(len(LOS)):
-        print(LOS[q].k, LOS[q].cdf(10), perp[q].cdf(10))
+            cCDF = db['cCDF']
+            #print(len(cCDF),len(cCDF[0]))
+
+            LOS = cCDF[0]
+            perp = cCDF[1]
+
+            '''
+            for q in range(len(LOS)):
+                print(LOS[q].k, LOS[q].cdf(10), perp[q].cdf(10))
+            '''
+    except:
+        print(f"missing {i}")
 
