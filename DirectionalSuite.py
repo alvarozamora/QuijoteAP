@@ -29,7 +29,7 @@ p = np.logspace(-3, np.log10(0.5), 100)
 p = np.append(p, 1-p[::-1][1:])*100
 
 # Specify Initial Point
-Om0 = 0.25
+Om0 = 0.3175
 Om0grid = np.arange(0.25,0.35,0.1)
 Om0grid = np.linspace(0.25,0.34,20)
 
@@ -37,15 +37,26 @@ Om0grid = np.linspace(0.25,0.34,20)
 vel_factor = 1.0
 
 # Specify Output Directory
-out = 'DirectionalSuite/'
+out = 'DirectionalSuite_OmpStretch/'
 
 import yt; yt.enable_parallelism(); is_root = yt.is_root();
 
 print(is_root)
 
-for q, sim in yt.parallel_objects(enumerate(sims),0):
+for sim in yt.parallel_objects(sims, 0, dynamic=True):
+
+    q = list(sims).index(sim)
 
     for z, snap in enumerate(snaps):
+
+            try:
+                with shelve.open(f'{out}{q:05d}') as db:
+                    assert len(db['cCDF']) == 2, "Not Saved"
+                    print(f"Skipping {q}")
+                continue
+            except:
+                print(f"Starting {q}")
+
 
             start = time.time()
 
