@@ -37,7 +37,8 @@ Om0grid = np.linspace(0.25,0.34,20)
 vel_factor = 1.0
 
 # Specify Output Directory
-out = 'DirectionalSuite_OmpStretch/'
+out = 'DirectionalSuite/'
+#out = 'DirectionalSuite_OmpStretch/'
 
 import yt; yt.enable_parallelism(); is_root = yt.is_root();
 
