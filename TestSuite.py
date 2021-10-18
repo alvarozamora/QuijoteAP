@@ -54,7 +54,7 @@ def measure_metrics():
 
     return residuals
 
-a = residual_metric()
+a = measure_metrics()
 print(a)
     
     
