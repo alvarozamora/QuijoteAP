@@ -20,12 +20,21 @@ N = [
     500, 
     500
 ]
+Nboxes = 15000
 
 def residual(zlos, zprp, lo, hi):
 
     r = np.linspace(lo, hi, 100)
 
     return np.abs(zlos[0].cdf(r) - zprp[0].cdf(r)).mean()
+
+nr = 50
+def k_residual(zlos, zprp, k=0):
+
+    r = np.logspace(np.log10(1), np.log10(30), nr)
+
+    return zlos[k].cdf(r) - zprp[k].cdf(r)
+
 
 
 limits = [
@@ -36,8 +45,18 @@ limits = [
     (20,25),
     (25,30),
 ]
+'''
+limits = [
+    (0,100),
+    (5,100),
+    (10,100),
+    (15,100),
+    (20,100),
+    (25,100),
+]
+'''
 
-metrics = [residual]
+metrics = [k_residual]
 def measure_metrics():
 
 
@@ -49,9 +68,9 @@ def measure_metrics():
         measurements = []
 
         if is_root:
-            it = tqdm(range(N[q])[:1000])
+            it = tqdm(range(N[q])[:Nboxes])
         else:
-            it = range(N[q])[:1000]
+            it = range(N[q])[:Nboxes]
         for n in it:
 
             if is_root:
@@ -61,14 +80,10 @@ def measure_metrics():
             cdf, zcdf = shelve.open(f"{CDF}{n:05d}").values()
             zlos, zprp = zcdf
 
-            dummy = []
-            for (lo, hi) in limits:
-                for metric in metrics:
-                    dummy.append(metric(zlos, zprp, lo, hi))
-            dummy = np.array(dummy)
-            measurements.append(dummy)
+            for metric in metrics:
+                measurements.append(metric(zlos, zprp, k=0))
 
-        measurements = np.array(measurements).reshape(len(it),len(limits)) # Potential Bug Here
+        measurements = np.array(measurements).reshape(len(it), nr) # Potential Bug Here
         sto.result = (measurements.mean(axis=0), measurements.std(axis=0), measurements.shape[0])
         sto.result_id = CDF
 
@@ -82,12 +97,28 @@ if is_root:
     legend_labels = ['fid', r'fid with $\Omega_+$ stretch', r'fid with $\Omega_-$ stretch', r'$\Omega_+$',r'$\Omega_-$']
     plt.figure()
     for q, CDF in enumerate(CDFs):
-        plt.errorbar(x=range(len(a[CDF][0])), y=a[CDF][0], yerr=a[CDF][0]/np.sqrt(a[CDF][2]),fmt='.',label=legend_labels[q])
+        plt.errorbar(x=range(len(a[CDF][0])), y=a[CDF][0], yerr=a[CDF][1]/np.sqrt(a[CDF][2]),fmt='.',label=legend_labels[q])
     plt.xlabel('Distance Scale (Mpc/h)')
     plt.ylabel('Absolute Residual')
     plt.xticks(range(len(labels)),labels)
     plt.legend()
     plt.savefig('testingsuite.png')
+
+if is_root:
+    legend_labels = ['fid', r'fid with $\Omega_+$ stretch', r'fid with $\Omega_-$ stretch', r'$\Omega_+$',r'$\Omega_-$']
+    plt.figure()
+    r = np.logspace(np.log10(1), np.log10(30), nr)
+    for q, CDF in enumerate(CDFs[3:], 3):
+        plt.errorbar(x=r, y=a[CDF][0]-a[CDFs[0]][0], yerr=a[CDF][1]/np.sqrt(a[CDF][2]),fmt='.',label=legend_labels[q])
+    for q, CDF in enumerate(CDFs[1:3], 1):
+        plt.errorbar(x=r, y=a[CDF][0]-a[CDFs[0]][0], yerr=a[CDF][1]/np.sqrt(a[CDF][2]),fmt='.',label=legend_labels[q])
+    plt.gca().set_xscale('log')
+    plt.xlabel('Distance Scale (Mpc/h)')
+    plt.ylabel('Absolute Residual')
+    plt.legend()
+    plt.savefig('testingsuite.png')
+
+
 
 
 
