@@ -27,7 +27,7 @@ p = np.logspace(-3, np.log10(0.5), 100)
 p = np.append(p, 1-p[::-1][1:])*100
 
 # Specify Initial Point
-Om0 = 0.25
+Om0 = 0.3175
 Om0grid = np.arange(0.25,0.35,0.1)
 Om0grid = np.linspace(0.25,0.34,20)
 

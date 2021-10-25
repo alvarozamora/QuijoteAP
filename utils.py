@@ -360,7 +360,9 @@ def equalsky(data, query, r, ids, k=8, bs=1, verb=True):
 	box1 = np.sort(np.array([np.sort(r[i][w==True],axis=-1)[:k] for i, w in enumerate(which)]),0)  # Line of Sight
 	box2 = np.sort(np.array([np.sort(r[i][w==False],axis=-1)[:k] for i, w in enumerate(which)]),0) # Perpendicular
 
-	#assert (x.shape == (D.shape[0], k)) & (y.shape == (D.shape[0], k)) & (z.shape == (D.shape[0], k)), 'Not enough neighbors in Square Pyramid'
+	assert (box1.shape == (D.shape[0], k)) & (box2.shape == (D.shape[0], k)), 'Not enough neighbors in Square Pyramid'
+	if np.random.uniform() > 0.99:
+		print(box1.shape, box2.shape)
 
 	#import pdb; pdb.set_trace()
 	#p = (x + y)/2
@@ -930,6 +932,37 @@ def compressedCDF(data, query, boxsize, k, verbose=True):
 
 		#Distances
 		cdf = np.arange(1, len(LOS)+1)/len(LOS)
+
+		cLOS = []
+		cprp = []
+
+		for q, kk in enumerate(k):
+
+			los = SE_distribution( LOS[:,q], compress="log", Ninterpolants=1000)
+			los.k = kk
+			cLOS.append(los)
+
+			prp = SE_distribution(perp[:,q], compress="log", Ninterpolants=1000)
+			prp.k = kk
+			cprp.append(prp)
+
+		return cLOS, cprp
+
+
+
+def compressedequalCDF(data, query, boxsize, k, verbose=True):
+
+		# Generate Tree
+		#start = time()
+		dtree = Tree(data, leafsize=8*np.max(k), compact_nodes=True, balanced_tree=True, boxsize=boxsize)
+		#print(f"Done with tree in {time()-start:.3f} seconds.")
+
+		# Query at Tree
+		start = time()
+		r, ids = dtree.query(query, k=k, n_jobs=-1)
+		print(f"Done querying tree in {time()-start:.3f} seconds.")
+
+		perp, LOS = equalsky(data, query, r, ids, k=k, bs=boxsize, verb=True)
 
 		cLOS = []
 		cprp = []

@@ -81,7 +81,7 @@ def measure_metrics():
             zlos, zprp = zcdf
 
             for metric in metrics:
-                measurements.append(metric(zlos, zprp, k=0))
+                measurements.append(metric(zlos, zprp, k=3))
 
         measurements = np.array(measurements).reshape(len(it), nr) # Potential Bug Here
         sto.result = (measurements.mean(axis=0), measurements.std(axis=0), measurements.shape[0])
@@ -91,18 +91,6 @@ def measure_metrics():
 
 a = measure_metrics()
 #print(a[CDFs[0]])
-
-if is_root:
-    labels = [f"{limit[0]}-{limit[1]}" for limit in limits]
-    legend_labels = ['fid', r'fid with $\Omega_+$ stretch', r'fid with $\Omega_-$ stretch', r'$\Omega_+$',r'$\Omega_-$']
-    plt.figure()
-    for q, CDF in enumerate(CDFs):
-        plt.errorbar(x=range(len(a[CDF][0])), y=a[CDF][0], yerr=a[CDF][1]/np.sqrt(a[CDF][2]),fmt='.',label=legend_labels[q])
-    plt.xlabel('Distance Scale (Mpc/h)')
-    plt.ylabel('Absolute Residual')
-    plt.xticks(range(len(labels)),labels)
-    plt.legend()
-    plt.savefig('testingsuite.png')
 
 if is_root:
     legend_labels = ['fid', r'fid with $\Omega_+$ stretch', r'fid with $\Omega_-$ stretch', r'$\Omega_+$',r'$\Omega_-$']
@@ -116,7 +104,7 @@ if is_root:
     plt.xlabel('Distance Scale (Mpc/h)')
     plt.ylabel('Absolute Residual')
     plt.legend()
-    plt.savefig('testingsuite.png')
+    plt.savefig('testingsuite4.png')
 
 
 

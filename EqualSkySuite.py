@@ -7,9 +7,9 @@ import sys; sys.stdout.flush()
 import shelve
 
 # Point to Simulations
-#sims = np.sort(glob.glob('Halos/FoF/fiducial/*'))
+sims = np.sort(glob.glob('Halos/FoF/fiducial/*'))
 #sims = np.sort(glob.glob('Om_m/*'))
-sims = np.sort(glob.glob('Om_p/*'))
+#sims = np.sort(glob.glob('Om_p/*'))
 
 # Specify Snap (0:3, 1:2, 2:1, 3:0.5, 4:0)
 #snaps = [2, 3]
@@ -39,11 +39,11 @@ Om0grid = np.linspace(0.25,0.34,20)
 vel_factor = 1.0
 
 # Specify Output Directory
-#out = 'DirectionalSuite_Omm/'
-out = 'DirectionalSuite_Omp/'
-#out = 'DirectionalSuite_OmpStretch/'
-#out = 'DirectionalSuite_OmmStretch/'
-#out = 'DirectionalSuite/'
+#out = 'EqualSkySuite_Omm/'
+#out = 'EqualSkySuite_Omp/'
+#out = 'EqualSkySuite_OmpStretch/'
+#out = 'EqualSkySuite_OmmStretch/'
+out = 'EqualSkySuite/'
 
 import yt; yt.enable_parallelism(); is_root = yt.is_root();
 
