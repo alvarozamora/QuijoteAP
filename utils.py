@@ -360,7 +360,7 @@ def equalsky(data, query, r, ids, k=8, bs=1, verb=True):
 	box1 = np.sort(np.array([np.sort(r[i][w==True],axis=-1)[:k] for i, w in enumerate(which)]),0)  # Line of Sight
 	box2 = np.sort(np.array([np.sort(r[i][w==False],axis=-1)[:k] for i, w in enumerate(which)]),0) # Perpendicular
 
-	assert (box1.shape == (D.shape[0], k)) & (box2.shape == (D.shape[0], k)), 'Not enough neighbors in Square Pyramid'
+	assert (box1.shape == (D.shape[0], k)) & (box2.shape == (D.shape[0], k)), 'Not enough neighbors in band'
 	if np.random.uniform() > 0.99:
 		print(box1.shape, box2.shape)
 

@@ -8,8 +8,8 @@ import shelve
 
 # Point to Simulations
 #sims = np.sort(glob.glob('Halos/FoF/fiducial/*'))
-sims = np.sort(glob.glob('Om_m/*'))
-#sims = np.sort(glob.glob('Om_p/*'))
+#sims = np.sort(glob.glob('Om_m/*'))
+sims = np.sort(glob.glob('Om_p/*'))
 
 # Specify Snap (0:3, 1:2, 2:1, 3:0.5, 4:0)
 #snaps = [2, 3]
@@ -39,8 +39,8 @@ Om0grid = np.linspace(0.25,0.34,20)
 vel_factor = 1.0
 
 # Specify Output Directory
-out = 'EqualSkySuite_Omm/'
-#out = 'EqualSkySuite_Omp/'
+#out = 'EqualSkySuite_Omm/'
+out = 'EqualSkySuite_Omp/'
 #out = 'EqualSkySuite_OmpStretch/'
 #out = 'EqualSkySuite_OmmStretch/'
 #out = 'EqualSkySuite/'
@@ -74,7 +74,7 @@ for sim in yt.parallel_objects(sims, 0, dynamic=True):
             rpos, pos, _, rands, _, hubble, redshift, boxsize, cont = ReadData(sim, Nrand=Nrand, nmass = Nmass, snap=snap, vel_factor=vel_factor)
 
             sys.stdout.flush()
-            s = sFactor(Om0 + 0.00, Zs[z])
+            s = sFactor(Om0 - 0.00, Zs[z])
 
             if cont:
 

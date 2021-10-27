@@ -4,13 +4,14 @@ import shelve
 from tqdm import tqdm
 import yt; yt.enable_parallelism(); is_root = yt.is_root();
 
-
+#suite = 'Directional'
+suite = 'EqualSky'
 CDFs = [
-    'DirectionalSuite/', 
-    'DirectionalSuite_OmpStretch/', 
-    'DirectionalSuite_OmmStretch/', 
-    'DirectionalSuite_Omp/', 
-    'DirectionalSuite_Omm/', 
+    f'{suite}Suite/', 
+    f'{suite}Suite_OmpStretch/', 
+    f'{suite}Suite_OmmStretch/', 
+    f'{suite}Suite_Omp/', 
+    f'{suite}Suite_Omm/', 
 ]
 
 N = [
@@ -35,26 +36,6 @@ def k_residual(zlos, zprp, k=0):
 
     return zlos[k].cdf(r) - zprp[k].cdf(r)
 
-
-
-limits = [
-    (0,5),
-    (5,10),
-    (10,15),
-    (15,20),
-    (20,25),
-    (25,30),
-]
-'''
-limits = [
-    (0,100),
-    (5,100),
-    (10,100),
-    (15,100),
-    (20,100),
-    (25,100),
-]
-'''
 
 metrics = [k_residual]
 def measure_metrics():
@@ -81,7 +62,7 @@ def measure_metrics():
             zlos, zprp = zcdf
 
             for metric in metrics:
-                measurements.append(metric(zlos, zprp, k=3))
+                measurements.append(metric(zlos, zprp, k=1))
 
         measurements = np.array(measurements).reshape(len(it), nr) # Potential Bug Here
         sto.result = (measurements.mean(axis=0), measurements.std(axis=0), measurements.shape[0])
@@ -104,7 +85,7 @@ if is_root:
     plt.xlabel('Distance Scale (Mpc/h)')
     plt.ylabel('Absolute Residual')
     plt.legend()
-    plt.savefig('testingsuite4.png')
+    plt.savefig(f'{suite}suite2.png')
 
 
 

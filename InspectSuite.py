@@ -1,14 +1,17 @@
 import shelve
 from tqdm import tqdm
 
-#it = tqdm(range(15000))
-it = tqdm(range(500))
+
+dir = 'EqualSkySuite_OmpStretch/'
+it = tqdm(range(15000))
+#it = tqdm(range(500))
+
 for i in it:
     it.set_description(f"Processing {i}")
     try:
         #print(f"DirectionalSuite/{i:05d}")
         #print(f"{i}")
-        with shelve.open(f"DirectionalSuite_Omp/{i:05d}") as db:
+        with shelve.open(f"{dir}{i:05d}") as db:
 
             cCDF = db['cCDF']
             #print(len(cCDF),len(cCDF[0]))
