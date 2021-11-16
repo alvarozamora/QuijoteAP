@@ -37,7 +37,7 @@ def stretch(data, zdata, query, boxsize, s):
 	squery = copy.deepcopy(np.array([query[:,0]/other, query[:,1]/other, query[:,2]*s]).T)
 
 	# Stretch Box
-	sbs = [boxsize/other, boxsize/other, boxsize*s]
+	sbs = np.array([boxsize/other, boxsize/other, boxsize*s])
 
 	return sdata, szdata, squery, sbs
 
@@ -352,23 +352,56 @@ def equalsky(data, query, r, ids, k=8, bs=1, verb=True):
 
 	D = np.abs(data[ids]-query[:,None])
 	D = np.minimum(D, bs-D)
-
+	
 	#which = np.argmax(np.abs(D),axis=2)
 	cr = np.sqrt(D[:,:,0]**2 + D[:,:,1]**2)
 	which = cr/np.abs(D[:,:,2]) < np.tan(np.pi/3)
 
-	box1 = np.sort(np.array([np.sort(r[i][w==True],axis=-1)[:k] for i, w in enumerate(which)]),0)  # Line of Sight
-	box2 = np.sort(np.array([np.sort(r[i][w==False],axis=-1)[:k] for i, w in enumerate(which)]),0) # Perpendicular
+	
+	box1 = [np.sort(r[i][w==True ],axis=-1)[:k] for i, w in enumerate(which)]
+	box2 = [np.sort(r[i][w==False],axis=-1)[:k] for i, w in enumerate(which)]
 
-	assert (box1.shape == (D.shape[0], k)) & (box2.shape == (D.shape[0], k)), 'Not enough neighbors in band'
-	if np.random.uniform() > 0.99:
-		print(box1.shape, box2.shape)
+	Box1 = []
+	Box2 = []
+
+	off = 0
+	for box in box1:
+		if len(box) != k:
+			off += 1
+		else:
+			Box1.append(box)
+
+	off2 = 0
+	for box in box2:
+		if len(box) != k:
+			off2 += 1
+		else:
+			Box2.append(box)
+
+	cutoff = np.min([len(Box1), len(Box2)])
+	Box1 = np.array(Box1)[:cutoff]
+	Box2 = np.array(Box2)[:cutoff]
+
+	print(f"There are {off} off entries.")
+	print(f"There are {off2} off2 entries.")
+	assert cutoff > 0.9*D.shape[0], "Not enough neighbors in band"
+	assert Box1.shape[1] == Box2.shape[1] and Box1.shape[1] == k, "not right number of Nearest Neighbors"
+
+
+	#box1 = np.sort(np.array([np.sort(r[i][w==True],axis=-1)[:k] for i, w in enumerate(which)]),0)  # Line of Sight
+	#box2 = np.sort(np.array([np.sort(r[i][w==False],axis=-1)[:k] for i, w in enumerate(which)]),0) # Perpendicular
+
+	#assert (box1.shape == (D.shape[0], k)) & (box2.shape == (D.shape[0], k)), 'Not enough neighbors in band'
+	#if np.random.uniform() > 0.99:
+	#	print(box1.shape, box2.shape)
 
 	#import pdb; pdb.set_trace()
 	#p = (x + y)/2
 
 	#p = np.sort(np.concatenate((x,y),0),0)
-	return box2, box1
+	#return box2, box1
+	#print(Box2[:,0].mean(), Box1[:,0].mean())
+	return Box2, Box1
 
 def PZD(data, query, r, ids,avg=True,c=0,bs=1,verb=True, low=None, high=None):
 
@@ -950,19 +983,41 @@ def compressedCDF(data, query, boxsize, k, verbose=True):
 
 
 
-def compressedequalCDF(data, query, boxsize, k, verbose=True):
+def compressedequalCDF(data, query, boxsize, k, verbose=True, subsamples=1):
 
-		# Generate Tree
-		#start = time()
-		dtree = Tree(data, leafsize=8*np.max(k), compact_nodes=True, balanced_tree=True, boxsize=boxsize)
-		#print(f"Done with tree in {time()-start:.3f} seconds.")
+		# Split into subsamples
+		# Ensure Random
+		choice = np.random.permutation(np.arange(len(data)))    
+		data = data[choice]
+		datas = np.split(data, subsamples)
+		queries = np.split(query, subsamples)
+		
+		r, ids = [], []
+		for sub, data_ in enumerate(datas):
+				
+			try:
+				# Generate Tree
+				dtree = Tree(data_, leafsize=8*np.max(k), compact_nodes=True, balanced_tree=True, boxsize=boxsize)
+			except:
+				data_ = np.array(data_)
+				boxsize = np.array(boxsize)
 
-		# Query at Tree
-		start = time()
-		r, ids = dtree.query(query, k=k, n_jobs=-1)
-		print(f"Done querying tree in {time()-start:.3f} seconds.")
+				which = (data_ != (data_%boxsize))
+				print(which.sum())
+				print(which.argmax())
+				print(data_.flatten()[which.argmax()], boxsize)
+				assert False, f"data min/max = {data_[data_.min(-1).argmin()]}, {data_[data_.max(-1).argmax()]}; boxsize = {boxsize}"
+			#print(f"Done with tree in {time()-start:.3f} seconds.")
 
-		perp, LOS = equalsky(data, query, r, ids, k=k, bs=boxsize, verb=True)
+			# Query Tree
+			r_, ids_ = dtree.query(queries[sub], k=8*np.max(k), n_jobs=-1)
+			r.append(r_); ids.append(ids_ + sub*len(data)//subsamples)
+		r = np.concatenate(r); ids = np.concatenate(ids)
+		assert len(r) == len(query), f"{len(r)}, {len(query)}"
+		if np.random.uniform() > 0.95:
+			print(r[:,0].mean())
+
+		perp, LOS = equalsky(data, query, r, ids, k=np.max(k), bs=boxsize, verb=True)
 
 		cLOS = []
 		cprp = []

@@ -1,3 +1,4 @@
+import yt; yt.enable_parallelism(); is_root = yt.is_root();
 from utils import *
 import numpy as np
 import glob
@@ -7,9 +8,9 @@ import sys; sys.stdout.flush()
 import shelve
 
 # Point to Simulations
-#sims = np.sort(glob.glob('Halos/FoF/fiducial/*'))
-sims = np.sort(glob.glob('Om_m/*'))
-#sims = np.sort(glob.glob('Om_p/*'))
+sims = np.sort(glob.glob('Halos/FoF/fiducial/*')) # 15000
+#sims = np.sort(glob.glob('Om_m/*'))   # 500
+#sims = np.sort(glob.glob('Om_p/*'))   # 500
 
 # Specify Snap (0:3, 1:2, 2:1, 3:0.5, 4:0)
 #snaps = [2, 3]
@@ -18,17 +19,15 @@ snaps = [3]
 Zs = [0.5]
 
 # Specify number densities
-Nrand = 10**7
+Nrand = 10**6
 Nmass = 10**5
+subsamples = 10  # Best if some prime factor of Nmass
 
 # Specify kNNs
 k = np.arange(128)+1
 k = 2**np.arange(6)
 k = np.array([1,2,3,4])
 
-# Specify percentiles
-p = np.logspace(-3, np.log10(0.5), 100)
-p = np.append(p, 1-p[::-1][1:])*100
 
 # Specify Initial Point
 Om0 = 0.3175
@@ -39,13 +38,15 @@ Om0grid = np.linspace(0.25,0.34,20)
 vel_factor = 1.0
 
 # Specify Output Directory
-out = 'EqualSkySuite_Omm/'
+#out = 'EqualSkySuite_Omm/'
 #out = 'EqualSkySuite_Omp/'
 #out = 'EqualSkySuite_OmpStretch/'
 #out = 'EqualSkySuite_OmmStretch/'
-#out = 'EqualSkySuite/'
-
-import yt; yt.enable_parallelism(); is_root = yt.is_root();
+out = 'EqualSkySuite/'
+#out = 'EqualSkySuite_1.3/'
+#out = 'EqualSkySuite_0.7/'
+#out = 'EqualSkySuite_1.02/'
+#out = 'EqualSkySuite_0.98/'
 
 print(is_root)
 
@@ -82,8 +83,9 @@ for sim in yt.parallel_objects(sims, 0, dynamic=True):
 
                 sdata, szdata, squery, sbs = stretch(rpos, pos, rands, boxsize, s)
 
-                cCDF  = compressedCDF( sdata, squery, sbs, k, False)
-                zcCDF = compressedCDF(szdata, squery, sbs, k, False)
+                cCDF  = compressedequalCDF( sdata, squery, sbs, k, False, subsamples)
+                zcCDF = compressedequalCDF(szdata, squery, sbs, k, False, subsamples)
+
 
                 end = time.time()
                 if is_root:
@@ -92,7 +94,6 @@ for sim in yt.parallel_objects(sims, 0, dynamic=True):
                 with shelve.open(f'{out}{q:05d}') as db:
                     db['cCDF']  =  cCDF
                     db['zcCDF'] = zcCDF
-
 
                 #except:
                 #    print("Couldn't get a")
